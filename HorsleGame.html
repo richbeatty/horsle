@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horsle Game</title>
+  <style>
+ /* General Styles */
+
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  transition: background-color 0.7s, color 0.7s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1 {
+  color: #fff;
+  font-family: "Lora", serif;
+  transition: background-color 0.5s, color 0.5s;
+}
+
+h2#target-word {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 50px;
+}
+
+#streak-container {
+  display: none;
+}
+
+/* Dark Mode */
+
+body.dark-mode {
+  background-color: #fff;
+  color: #000;
+}
+
+body.dark-mode h1 {
+  color: #000;
+}
+
+body.dark-mode #fullscreen-button svg path {
+  fill: black;
+}
+
+body.dark-mode #toggle-button svg path {
+  fill: black;
+}
+
+body.dark-mode h1 {
+  color: #000 !important;
+}
+
+body.dark-mode #toggle-button svg {
+  fill: #000;
+}
+
+/* Fullscreen Button */
+
+#fullscreen-button {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 35px;
+  height: 35px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 999;
+  transform: scale(1);
+  transition: background-color 0.5s, color 0.5s;
+}
+
+#fullscreen-button svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  z-index: 999;
+  transform: none !important;
+  transition: background-color 0.5s, color 0.5s;
+}
+
+#fullscreen-button svg path {
+  fill: white;
+  transition: background-color 0.5s, color 0.5s;
+}
+
+/* Toggle Button */
+
+#toggle-button {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 35px;
+  height: 35px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 999;
+  transform: none !important;
+  transition: background-color 0.5s, color 0.5s;
+}
+
+#toggle-button svg {
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+  transform: none !important;
+  transition: background-color 0.5s, color 0.5s;
+}
+
+/* Title Container */
+
+#title-container {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative; /* Add this line to establish a positioning context */
+}
+
+#title-container h1 {
+  color: #fff;
+  font-family: "Lora", serif;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.line {
+  width: 35%;
+  height: 2px;
+  background-color: #787c7f;
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .line {
+    width: 90%;
+  }
+}
+
+/* Popup Container */
+
+.popup-content {
+  text-align: center;
+  margin-bottom: 20px;
+  text-shadow: black 2px 2px 5px;
+}
+
+.popup-content p:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.popup {
+  position: relative;
+  background-color: rgba(120, 124, 127, 0.6);
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  font-size: 22px;
+  text-align: center;
+  color: #6ca965;
+  max-width: 90%;
+}
+
+.popup-word {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  width: auto;
+  margin: 20px auto;
+  max-width: 100%;
+}
+
+.word-tile {
+  width: 30px;
+  height: 30px;
+  background-color: #6ca965;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 20px;
+  color: #fff;
+  margin-right: 5px;
+  box-shadow: black 2px 2px 5px;
+}
+
+.popup-close {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  font-size: 30px;
+  font-weight: bold;
+  color: #6ca965;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.popup-close:hover {
+  color: #ccc;
+}
+
+/* Word Container */
+
+#word-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin: 0 auto 50px;
+}
+
+#word-container div {
+  width: 40px;
+  height: 40px;
+  perspective: 1000px;
+  margin: 0 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#word-container .card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transform-origin: center;
+  transform: rotateX(0);
+  transition: transform 1s;
+}
+
+#word-container .card.flipped {
+  transform: rotateX(180deg);
+}
+
+#word-container .card .face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 5px;
+  line-height: 40px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+#word-container .card .front {
+  background: #787c7f;
+}
+
+#word-container .card .back {
+  background: #6ca965;
+  transform: rotateX(180deg);
+}
+
+.target-tile {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin: 0 2px;
+  background: #6ca965;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 20px;
+  color: #fff;
+  transform-style: preserve-3d;
+  transform-origin: center;
+  transform: rotateX(0);
+  transition: transform 1s;
+}
+
+.target-tile.red {
+  background: #f00;
+}
+
+.target-tile.flipped {
+  transform: rotateX(360deg);
+}
+
+@media (min-width: 768px) {
+  #word-container div {
+    width: 60px;
+    height: 60px;
+  }
+
+  .target-tile {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+  }
+}
+
+/* Keyboard Container */
+
+#keyboard-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+#keyboard-container div {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+#keyboard-container button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 3px;
+  padding: 10px;
+  cursor: pointer;
+  border: none;
+  background: #787c7f;
+  border-radius: 5px;
+  color: #fff;
+  min-width: 35px;
+  height: 45px;
+  white-space: nowrap;
+}
+
+#keyboard-container button.correct {
+  background: #6ca965;
+}
+
+#keyboard-container button.incorrect {
+  background: #f00;
+}
+
+/* Instructions Button */
+
+#instruct {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  border: none;
+  background: #c8b653;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: "Lora", serif;
+  font-size: 18px;
+}
+
+#instruct:hover {
+  background: #a09142;
+}
+
+/* Media Queries */
+
+@media (min-width: 768px) {
+  body {
+    font-size: 24px;
+  }
+
+  h1 {
+    font-size: 36px;
+  }
+
+  #keyboard-container button {
+    padding: 15px;
+    font-size: 20px;
+    min-width: 50px;
+    height: 70px;
+  }
+
+  #reset {
+    font-size: 24px;
+  }
+
+  .popup {
+    font-size: 28px;
+  }
+
+  .popup-word {
+    margin-top: 20px;
+  }
+
+  .word-tile {
+    width: 50px;
+    height: 50px;
+    font-size: 36px;
+  }
+
+  .popup-close {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 767px) {
+  #keyboard-container button {
+    padding: 5px;
+    font-size: 16px;
+    min-width: 30px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 767px) {
+  #word-container div {
+    margin: 0 1.5px; /* Adjust the margin as desired */
+  }
+}
+
+  </style>
+</head>
+
+<body>
+  <!-- Your HTML code here -->
+  <div id="title-container">
+    <button id="toggle-button">
+      <svg viewBox="0 0 352 512" width="100" title="lightbulb">
+        <path d="M96.06 454.35c.01 6.29 1.87 12.45 5.36 17.69l17.09 25.69a31.99 31.99 0 0 0 26.64 14.28h61.71a31.99 31.99 0 0 0 26.64-14.28l17.09-25.69a31.989 31.989 0 0 0 5.36-17.69l.04-38.35H96.01l.05 38.35zM0 176c0 44.37 16.45 84.85 43.56 115.78 16.52 18.85 42.36 58.23 52.21 91.45.04.26.07.52.11.78h160.24c.04-.26.07-.51.11-.78 9.85-33.22 35.69-72.6 52.21-91.45C335.55 260.85 352 220.37 352 176 352 78.61 272.91-.3 175.45 0 73.44.31 0 82.97 0 176zm176-80c-44.11 0-80 35.89-80 80 0 8.84-7.16 16-16 16s-16-7.16-16-16c0-61.76 50.24-112 112-112 8.84 0 16 7.16 16 16s-7.16 16-16 16z" fill="white" />
+      </svg>
+    </button>
+    <div>
+      <h1>Horsle Unlimited</h1>
+      <div class="line"></div>
+    </div>
+  </div>
+  <h2 id="target-word">
+    <div class="target-tile">H</div>
+    <div class="target-tile">O</div>
+    <div class="target-tile">R</div>
+    <div class="target-tile">S</div>
+    <div class="target-tile">E</div>
+  </h2>
+  <div id="word-container"></div>
+  <div id="keyboard-container">
+    <div id="row-1"></div>
+    <div id="row-2"></div>
+    <div id="row-3"></div>
+  </div>
+  <button id="instruct">Instructions</button>
+  <button id="fullscreen-button">
+    <svg viewBox="0 0 448 512" width="100" title="expand-arrows-alt">
+      <path d="M448 344v112a23.94 23.94 0 0 1-24 24H312c-21.39 0-32.09-25.9-17-41l36.2-36.2L224 295.6 116.77 402.9 153 439c15.09 15.1 4.39 41-17 41H24a23.94 23.94 0 0 1-24-24V344c0-21.4 25.89-32.1 41-17l36.19 36.2L184.46 256 77.18 148.7 41 185c-15.1 15.1-41 4.4-41-17V56a23.94 23.94 0 0 1 24-24h112c21.39 0 32.09 25.9 17 41l-36.2 36.2L224 216.4l107.23-107.3L295 73c-15.09-15.1-4.39-41 17-41h112a23.94 23.94 0 0 1 24 24v112c0 21.4-25.89 32.1-41 17l-36.19-36.2L263.54 256l107.28 107.3L407 327.1c15.1-15.2 41-4.5 41 16.9z" />
+    </svg>
+  </button>
+  <div id="streak-container">
+    <p>Streak: <span id="streak-count"></span></p>
+  </div>
+
+  <script>
+const fullscreenButton = document.getElementById("fullscreen-button");
+const fullscreenIcon = fullscreenButton.querySelector("svg");
+
+// Function to toggle fullscreen mode
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    // Enter fullscreen mode
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    } else if (document.documentElement.mozRequestFullScreen) {
+      document.documentElement.mozRequestFullScreen();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen();
+    } else if (document.documentElement.msRequestFullscreen) {
+      document.documentElement.msRequestFullscreen();
+    }
+
+    // Change icon to compress-arrows-alt
+    fullscreenIcon.innerHTML = `<path d="M200 288H88c-21.4 0-32.1 25.8-17 41l32.9 31-99.2 99.3c-6.2 6.2-6.2 16.4 0 22.6l25.4 25.4c6.2 6.2 16.4 6.2 22.6 0L152 408l31.1 33c15.1 15.1 40.9 4.4 40.9-17V312c0-13.3-10.7-24-24-24zm112-64h112c21.4 0 32.1-25.9 17-41l-33-31 99.3-99.3c6.2-6.2 6.2-16.4 0-22.6L481.9 4.7c-6.2-6.2-16.4-6.2-22.6 0L360 104l-31.1-33C313.8 55.9 288 66.6 288 88v112c0 13.3 10.7 24 24 24zm96 136l33-31.1c15.1-15.1 4.4-40.9-17-40.9H312c-13.3 0-24 10.7-24 24v112c0 21.4 25.9 32.1 41 17l31-32.9 99.3 99.3c6.2 6.2 16.4 6.2 22.6 0l25.4-25.4c6.2-6.2 6.2-16.4 0-22.6L408 360zM183 71.1L152 104 52.7 4.7c-6.2-6.2-16.4-6.2-22.6 0L4.7 30.1c-6.2 6.2-6.2 16.4 0 22.6L104 152l-33 31.1C55.9 198.2 66.6 224 88 224h112c13.3 0 24-10.7 24-24V88c0-21.3-25.9-32-41-16.9z" />`;
+  } else {
+    // Exit fullscreen mode
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+
+    // Change icon to expand-arrows-alt
+    fullscreenIcon.innerHTML = `<path d="M448 344v112a23.94 23.94 0 0 1-24 24H312c-21.39 0-32.09-25.9-17-41l36.2-36.2L224 295.6 116.77 402.9 153 439c15.09 15.1 4.39 41-17 41H24a23.94 23.94 0 0 1-24-24V344c0-21.4 25.89-32.1 41-17l36.19 36.2L184.46 256 77.18 148.7 41 185c-15.1 15.1-41 4.4-41-17V56a23.94 23.94 0 0 1 24-24h112c21.39 0 32.09 25.9 17 41l-36.2 36.2L224 216.4l107.23-107.3L295 73c-15.09-15.1-4.39-41 17-41h112a23.94 23.94 0 0 1 24 24v112c0 21.4-25.89 32.1-41 17l-36.19-36.2L263.54 256l107.28 107.3L407 327.1c15.1-15.2 41-4.5 41 16.9z" />`;
+  }
+}
+
+// Add click event listener to the fullscreen button
+fullscreenButton.addEventListener("click", toggleFullscreen);
+
+const toggleButton = document.getElementById("toggle-button");
+const body = document.body;
+const svgIcon = document.querySelector("#toggle-button svg");
+
+toggleButton.addEventListener("click", function () {
+  body.classList.toggle("dark-mode");
+  if (body.classList.contains("dark-mode")) {
+    svgIcon.style.fill = "#000"; // Set SVG color to black
+  } else {
+    svgIcon.style.fill = "#fff"; // Set SVG color to white
+  }
+});
+
+const WORDS = [
+"kiss", 
+ "transportation", 
+ "man", 
+ "north", 
+ "ground", 
+ "math", 
+ "count", 
+ "junior", 
+ "hook", 
+ "ride", 
+ "angle", 
+ "master", 
+ "blame", 
+ "fun", 
+ "order", 
+ "industry", 
+ "teach", 
+ "relief", 
+ "frame", 
+ "wing", 
+ "mission", 
+ "unique", 
+ "water", 
+ "mention", 
+ "kitchen", 
+ "penalty", 
+ "pack", 
+ "upstairs", 
+ "title", 
+ "glass", 
+ "candidate", 
+ "taste", 
+ "team", 
+ "special", 
+ "scheme", 
+ "physical", 
+ "clothes", 
+ "assignment", 
+ "half", 
+ "book", 
+ "bed", 
+ "maximum", 
+ "wheel", 
+ "front", 
+ "plant", 
+ "suspect", 
+ "brown", 
+ "male", 
+ "couple", 
+ "guard", 
+ "commission", 
+ "knowledge", 
+ "suck", 
+ "policy", 
+ "instruction", 
+ "hand", 
+ "secretary", 
+ "skill", 
+ "month", 
+ "representative", 
+ "championship", 
+ "active", 
+ "country", 
+ "help", 
+ "bake", 
+ "amount", 
+ "cabinet", 
+ "shake", 
+ "sale", 
+ "land", 
+ "iron", 
+ "attempt", 
+ "jacket", 
+ "volume", 
+ "death", 
+ "fee", 
+ "wash", 
+ "appeal", 
+ "queen", 
+ "feature", 
+ "nerve", 
+ "delay", 
+ "mix", 
+ "neat", 
+ "refuse", 
+ "shop", 
+ "pride", 
+ "restaurant", 
+ "clock", 
+ "associate", 
+ "cause", 
+ "tea", 
+ "wealth", 
+ "note", 
+ "prior", 
+ "initiative", 
+ "invite", 
+ "meaning", 
+ "role", 
+ "king", 
+ "gas", 
+ "minimum", 
+ "black", 
+ "jump", 
+ "bend", 
+ "operation", 
+ "ship", 
+ "cell", 
+ "hospital", 
+ "lead", 
+ "swing", 
+ "stage", 
+ "maintenance", 
+ "watch", 
+ "chicken", 
+ "wine", 
+ "personal", 
+ "future", 
+ "shock", 
+ "load", 
+ "organization", 
+ "refrigerator", 
+ "mirror", 
+ "love", 
+ "war", 
+ "belt", 
+ "fuel", 
+ "mortgage", 
+ "beach", 
+ "wear", 
+ "green", 
+ "cycle", 
+ "particular", 
+ "company", 
+ "view", 
+ "track", 
+ "shelter", 
+ "radio", 
+ "student", 
+ "strain", 
+ "seat", 
+ "glove", 
+ "form", 
+ "regret", 
+ "solid", 
+ "pitch", 
+ "silver", 
+ "mess", 
+ "newspaper", 
+ "economy", 
+ "situation", 
+ "roll", 
+ "funeral", 
+ "expert", 
+ "perception", 
+ "tradition", 
+ "passage", 
+ "loan", 
+ "location", 
+ "deal", 
+ "push", 
+ "following", 
+ "potato", 
+ "boyfriend", 
+ "ball", 
+ "milk", 
+ "elevator", 
+ "golf", 
+ "hearing", 
+ "finish", 
+ "project", 
+ "arrival", 
+ "coast", 
+ "knife", 
+ "son", 
+ "writer", 
+ "heart", 
+ "contract", 
+ "step", 
+ "candle", 
+ "opinion", 
+ "voice", 
+ "midnight", 
+ "block", 
+ "ask", 
+ "reality", 
+ "community", 
+ "string", 
+ "information", 
+ "grass", 
+ "world", 
+ "improvement", 
+ "subject", 
+ "lip", 
+ "upper", 
+ "room", 
+ "fly", 
+ "professor", 
+ "champion", 
+ "entertainment", 
+ "profession", 
+ "tale", 
+ "convert", 
+ "repeat", 
+ "hurt", 
+ "quit", 
+ "director", 
+ "luck", 
+ "rush", 
+ "self", 
+ "work", 
+ "proposal", 
+ "wake", 
+ "primary", 
+ "child", 
+ "habit", 
+ "scratch", 
+ "muscle", 
+ "truck", 
+ "breast", 
+ "literature", 
+ "drunk", 
+ "employee", 
+ "tomorrow", 
+ "sound", 
+ "skin", 
+ "dead", 
+ "carry", 
+ "cheek", 
+ "break", 
+ "interest", 
+ "fish", 
+ "singer", 
+ "attention", 
+ "patience", 
+ "user", 
+ "divide", 
+ "desire", 
+ "punch", 
+ "stupid", 
+ "peak", 
+ "if", 
+ "cable", 
+ "white", 
+ "simple", 
+ "hold", 
+ "university", 
+ "dust", 
+ "yellow", 
+ "potential", 
+ "plan", 
+ "variety", 
+ "value", 
+ "database", 
+ "trainer", 
+ "screen", 
+ "virus", 
+ "mud", 
+ "art", 
+ "sense", 
+ "treat", 
+ "anywhere", 
+ "tear", 
+ "temperature", 
+ "example", 
+ "plate", 
+ "sister", 
+ "agreement", 
+ "source", 
+ "focus", 
+ "editor", 
+ "software", 
+ "complaint", 
+ "camp", 
+ "promotion", 
+ "spring", 
+ "feedback", 
+ "examination", 
+ "drawing", 
+ "extension", 
+ "cap", 
+ "dealer", 
+ "debt", 
+ "partner", 
+ "increase", 
+ "region", 
+ "single", 
+ "injury", 
+ "guarantee", 
+ "baby", 
+ "god", 
+ "hang", 
+ "tennis", 
+ "evidence", 
+ "depression", 
+ "leadership", 
+ "broad", 
+ "space", 
+ "walk", 
+ "competition", 
+ "native", 
+ "rough", 
+ "crack", 
+ "status", 
+ "document", 
+ "bike", 
+ "click", 
+ "writing", 
+ "medium", 
+ "permission", 
+ "bottle", 
+ "positive", 
+ "society", 
+ "fill", 
+ "matter", 
+ "instance", 
+ "place", 
+ "guitar", 
+ "most", 
+ "chip", 
+ "study", 
+ "advertising", 
+ "historian", 
+ "pollution", 
+ "slide", 
+ "advantage", 
+ "working", 
+ "let", 
+ "error", 
+ "entrance", 
+ "familiar", 
+ "channel", 
+ "pull", 
+ "respect", 
+ "birth", 
+ "garage", 
+ "effort", 
+ "suggestion", 
+ "rule", 
+ "question", 
+ "site", 
+ "it", 
+ "silly", 
+ "traffic", 
+ "deep", 
+ "stranger", 
+ "reason", 
+ "baseball", 
+ "news", 
+ "machine", 
+ "high", 
+ "excuse", 
+ "group", 
+ "bread", 
+ "bid", 
+ "judgment", 
+ "search", 
+ "lesson", 
+ "present", 
+ "power", 
+ "spare", 
+ "vacation", 
+ "talk", 
+ "teaching", 
+ "ability", 
+ "part", 
+ "bedroom", 
+ "sea", 
+ "doubt", 
+ "earth", 
+ "item", 
+ "fortune", 
+ "action", 
+ "weight", 
+ "breath", 
+ "buy", 
+ "promise", 
+ "library", 
+ "star", 
+ "significance", 
+ "exam", 
+ "alarm", 
+ "anger", 
+ "might", 
+ "cook", 
+ "movie", 
+ "house", 
+ "mobile", 
+ "review", 
+ "drink", 
+ "speaker", 
+ "drive", 
+ "occasion", 
+ "beautiful", 
+ "ear", 
+ "brief", 
+ "selection", 
+ "strategy", 
+ "mate", 
+ "smile", 
+ "mouth", 
+ "physics", 
+ "conversation", 
+ "quiet", 
+ "comfort", 
+ "network", 
+ "face", 
+ "insect", 
+ "secret", 
+ "position", 
+ "pattern", 
+ "dot", 
+ "swimming", 
+ "currency", 
+ "outcome", 
+ "leader", 
+ "spot", 
+ "holiday", 
+ "conference", 
+ "rich", 
+ "train", 
+ "setting", 
+ "hotel", 
+ "produce", 
+ "tourist", 
+ "contact", 
+ "variation", 
+ "hair", 
+ "wedding", 
+ "trash", 
+ "try", 
+ "harm", 
+ "valuable", 
+ "depth", 
+ "gold", 
+ "progress", 
+ "system", 
+ "practice", 
+ "grab", 
+ "estimate", 
+ "towel", 
+ "capital", 
+ "technology", 
+ "awareness", 
+ "ruin", 
+ "resource", 
+ "housing", 
+ "alternative", 
+ "foundation", 
+ "imagination", 
+ "manner", 
+ "map", 
+ "song", 
+ "background", 
+ "guidance", 
+ "permit", 
+ "essay", 
+ "spiritual", 
+ "smell", 
+ "mall", 
+ "top", 
+ "slice", 
+ "calendar", 
+ "party", 
+ "health", 
+ "structure", 
+ "distance", 
+ "culture", 
+ "hello", 
+ "object", 
+ "coat", 
+ "rate", 
+ "regular", 
+ "recover", 
+ "deposit", 
+ "general", 
+ "claim", 
+ "safety", 
+ "international", 
+ "communication", 
+ "brain", 
+ "discipline", 
+ "worker", 
+ "long", 
+ "buyer", 
+ "trip", 
+ "complex", 
+ "tooth", 
+ "run", 
+ "hire", 
+ "shift", 
+ "father", 
+ "character", 
+ "noise", 
+ "boat", 
+ "salary", 
+ "normal", 
+ "extreme", 
+ "dimension", 
+ "moment", 
+ "version", 
+ "energy", 
+ "bag", 
+ "charge", 
+ "net", 
+ "pension", 
+ "comparison", 
+ "employment", 
+ "excitement", 
+ "forever", 
+ "tap", 
+ "message", 
+ "option", 
+ "double", 
+ "wave", 
+ "motor", 
+ "income", 
+ "fruit", 
+ "finding", 
+ "proof", 
+ "aspect", 
+ "release", 
+ "fault", 
+ "class", 
+ "still", 
+ "set", 
+ "menu", 
+ "year", 
+ "concept", 
+ "reply", 
+ "clue", 
+ "teacher", 
+ "resolution", 
+ "serve", 
+ "current", 
+ "event", 
+ "meeting", 
+ "kid", 
+ "program", 
+ "bonus", 
+ "being", 
+ "profile", 
+ "bet", 
+ "bowl", 
+ "truth", 
+ "flow", 
+ "responsibility", 
+ "construction", 
+ "office", 
+ "tool", 
+ "advice", 
+ "winner", 
+ "whole", 
+ "actor", 
+ "pleasure", 
+ "author", 
+ "score", 
+ "nobody", 
+ "fact", 
+ "cold", 
+ "request", 
+ "battle", 
+ "fear", 
+ "march", 
+ "session", 
+ "kind", 
+ "assist", 
+ "travel", 
+ "file", 
+ "weekend", 
+ "stuff", 
+ "anything", 
+ "pin", 
+ "sort", 
+ "plenty", 
+ "survey", 
+ "management", 
+ "bar", 
+ "raise", 
+ "inspection", 
+ "ticket", 
+ "split", 
+ "human", 
+ "witness", 
+ "offer", 
+ "style", 
+ "paper", 
+ "result", 
+ "size", 
+ "meat", 
+ "south", 
+ "stand", 
+ "kill", 
+ "standard", 
+ "print", 
+ "assumption", 
+ "hunt", 
+ "estate", 
+ "island", 
+ "conflict", 
+ "cup", 
+ "control", 
+ "word", 
+ "lift", 
+ "web", 
+ "window", 
+ "morning", 
+ "guess", 
+ "engineering", 
+ "spray", 
+ "garden", 
+ "importance", 
+ "second", 
+ "property", 
+ "preparation", 
+ "experience", 
+ "establishment", 
+ "profit", 
+ "army", 
+ "revolution", 
+ "great", 
+ "degree", 
+ "trick", 
+ "loss", 
+ "poem", 
+ "good", 
+ "freedom", 
+ "phone", 
+ "audience", 
+ "honey", 
+ "river", 
+ "obligation", 
+ "tell", 
+ "a", 
+ "pop", 
+ "age", 
+ "demand", 
+ "payment", 
+ "impression", 
+ "cat", 
+ "evening", 
+ "call", 
+ "lecture", 
+ "damage", 
+ "poetry", 
+ "disaster", 
+ "bug", 
+ "station", 
+ "meal", 
+ "difference", 
+ "pace", 
+ "diet", 
+ "leg", 
+ "while", 
+ "log", 
+ "mail", 
+ "cost", 
+ "list", 
+ "external", 
+ "substance", 
+ "design", 
+ "mom", 
+ "car", 
+ "theme", 
+ "thanks", 
+ "product", 
+ "fix", 
+ "investment", 
+ "term", 
+ "ladder", 
+ "negotiation", 
+ "border", 
+ "bear", 
+ "gather", 
+ "tough", 
+ "celebration", 
+ "boy", 
+ "consist", 
+ "branch", 
+ "necessary", 
+ "pick", 
+ "exit", 
+ "turn", 
+ "committee", 
+ "peace", 
+ "buddy", 
+ "stop", 
+ "context", 
+ "category", 
+ "leading", 
+ "desk", 
+ "employ", 
+ "credit", 
+ "remote", 
+ "debate", 
+ "opposite", 
+ "devil", 
+ "strength", 
+ "floor", 
+ "post", 
+ "confusion", 
+ "type", 
+ "ambition", 
+ "introduction", 
+ "president", 
+ "horror", 
+ "sweet", 
+ "requirement", 
+ "ad", 
+ "problem", 
+ "principle", 
+ "tie", 
+ "bad", 
+ "classic", 
+ "code", 
+ "charity", 
+ "personality", 
+ "yard", 
+ "gene", 
+ "argument", 
+ "appearance", 
+ "annual", 
+ "stomach", 
+ "enthusiasm", 
+ "reach", 
+ "drag", 
+ "layer", 
+ "percentage", 
+ "account", 
+ "birthday", 
+ "platform", 
+ "crash", 
+ "winter", 
+ "anybody", 
+ "election", 
+ "combine", 
+ "reveal", 
+ "member", 
+ "independence", 
+ "end", 
+ "failure", 
+ "discount", 
+ "tackle", 
+ "fail", 
+ "engineer", 
+ "career", 
+ "manager", 
+ "patient", 
+ "calm", 
+ "poet", 
+ "sell", 
+ "lawyer", 
+ "highway", 
+ "childhood", 
+ "bother", 
+ "equipment", 
+ "material", 
+ "girl", 
+ "farm", 
+ "orange", 
+ "government", 
+ "mother", 
+ "memory", 
+ "table", 
+ "effect", 
+ "plane", 
+ "person", 
+ "dump", 
+ "clerk", 
+ "story", 
+ "hole", 
+ "media", 
+ "bird", 
+ "slip", 
+ "magazine", 
+ "counter", 
+ "roof", 
+ "guest", 
+ "analysis", 
+ "nothing", 
+ "record", 
+ "pound", 
+ "priority", 
+ "factor", 
+ "emphasis", 
+ "administration", 
+ "mark", 
+ "mixture", 
+ "speech", 
+ "stable", 
+ "parking", 
+ "surprise", 
+ "agency", 
+ "conclusion", 
+ "designer", 
+ "due", 
+ "repair", 
+ "distribution", 
+ "catch", 
+ "abroad", 
+ "exchange", 
+ "senior", 
+ "crew", 
+ "alcohol", 
+ "weakness", 
+ "relation", 
+ "stock", 
+ "young", 
+ "price", 
+ "fight", 
+ "reference", 
+ "page", 
+ "cancer", 
+ "path", 
+ "creative", 
+ "oven", 
+ "snow", 
+ "today", 
+ "transition", 
+ "egg", 
+ "bridge", 
+ "strip", 
+ "remove", 
+ "development", 
+ "plastic", 
+ "official", 
+ "spread", 
+ "husband", 
+ "put", 
+ "hate", 
+ "till", 
+ "mountain", 
+ "interview", 
+ "delivery", 
+ "panic", 
+ "measurement", 
+ "raw", 
+ "sandwich", 
+ "period", 
+ "grocery", 
+ "chair", 
+ "cut", 
+ "case", 
+ "emotion", 
+ "telephone", 
+ "national", 
+ "beginning", 
+ "light", 
+ "button", 
+ "tune", 
+ "sensitive", 
+ "cow", 
+ "bitter", 
+ "picture", 
+ "lunch", 
+ "affair", 
+ "marriage", 
+ "tip", 
+ "big", 
+ "ease", 
+ "suit", 
+ "pain", 
+ "sink", 
+ "computer", 
+ "insurance", 
+ "gift", 
+ "relationship", 
+ "job", 
+ "quantity", 
+ "text", 
+ "care", 
+ "influence", 
+ "grandfather", 
+ "lie", 
+ "attack", 
+ "studio", 
+ "indication", 
+ "possession", 
+ "handle", 
+ "football", 
+ "nurse", 
+ "basis", 
+ "definition", 
+ "replacement", 
+ "departure", 
+ "union", 
+ "soil", 
+ "maybe", 
+ "safe", 
+ "preference", 
+ "public", 
+ "consideration", 
+ "minor", 
+ "stick", 
+ "scene", 
+ "diamond", 
+ "door", 
+ "presentation", 
+ "business", 
+ "atmosphere", 
+ "concert", 
+ "knee", 
+ "pool", 
+ "inspector", 
+ "time", 
+ "aside", 
+ "chest", 
+ "throat", 
+ "week", 
+ "success", 
+ "nail", 
+ "blind", 
+ "wonder", 
+ "keep", 
+ "bunch", 
+ "drawer", 
+ "film", 
+ "process", 
+ "trade", 
+ "reaction", 
+ "cross", 
+ "money", 
+ "tower", 
+ "listen", 
+ "theory", 
+ "shopping", 
+ "engine", 
+ "tank", 
+ "can", 
+ "she", 
+ "opportunity", 
+ "cookie", 
+ "homework", 
+ "natural", 
+ "funny", 
+ "basket", 
+ "round", 
+ "night", 
+ "western", 
+ "fall", 
+ "fire", 
+ "storage", 
+ "blue", 
+ "glad", 
+ "many", 
+ "college", 
+ "gear", 
+ "switch", 
+ "west", 
+ "sector", 
+ "boss", 
+ "court", 
+ "use", 
+ "sex", 
+ "respond", 
+ "look", 
+ "juice", 
+ "sport", 
+ "city", 
+ "climate", 
+ "friendship", 
+ "reading", 
+ "adult", 
+ "purple", 
+ "inflation", 
+ "league", 
+ "growth", 
+ "state", 
+ "resolve", 
+ "spirit", 
+ "screw", 
+ "inside", 
+ "lake", 
+ "dig", 
+ "signature", 
+ "notice", 
+ "outside", 
+ "visit", 
+ "shine", 
+ "bell", 
+ "oil", 
+ "internet", 
+ "line", 
+ "carpet", 
+ "return", 
+ "pressure", 
+ "pot", 
+ "grade", 
+ "photo", 
+ "neck", 
+ "sun", 
+ "contribution", 
+ "professional", 
+ "monitor", 
+ "procedure", 
+ "association", 
+ "relative", 
+ "passion", 
+ "letter", 
+ "hit", 
+ "owner", 
+ "street", 
+ "recipe", 
+ "soft", 
+ "client", 
+ "swim", 
+ "cousin", 
+ "market", 
+ "cry", 
+ "beer", 
+ "mistake", 
+ "smoke", 
+ "language", 
+ "internal", 
+ "home", 
+ "manufacturer", 
+ "lay", 
+ "zone", 
+ "past", 
+ "camera", 
+ "intention", 
+ "tone", 
+ "pie", 
+ "force", 
+ "shame", 
+ "discussion", 
+ "routine", 
+ "sentence", 
+ "access", 
+ "comment", 
+ "grand", 
+ "other", 
+ "effective", 
+ "wood", 
+ "area", 
+ "day", 
+ "savings", 
+ "hour", 
+ "heat", 
+ "game", 
+ "population", 
+ "science", 
+ "video", 
+ "lady", 
+ "worry", 
+ "method", 
+ "explanation", 
+ "flight", 
+ "staff", 
+ "training", 
+ "trouble", 
+ "possibility", 
+ "rest", 
+ "common", 
+ "cream", 
+ "fan", 
+ "independent", 
+ "rip", 
+ "possible", 
+ "recommendation", 
+ "vast", 
+ "accident", 
+ "shot", 
+ "concern", 
+ "play", 
+ "sand", 
+ "resort", 
+ "spite", 
+ "head", 
+ "abuse", 
+ "bill", 
+ "quality", 
+ "dress", 
+ "collection", 
+ "advance", 
+ "detail", 
+ "east", 
+ "pizza", 
+ "sing", 
+ "concentrate", 
+ "body", 
+ "pass", 
+ "medicine", 
+ "criticism", 
+ "local", 
+ "cancel", 
+ "apple", 
+ "mode", 
+ "beyond", 
+ "whereas", 
+ "driver", 
+ "horse", 
+ "finance", 
+ "appointment", 
+ "park", 
+ "key", 
+ "shoulder", 
+ "eat", 
+ "beat", 
+ "foot", 
+ "boot", 
+ "brave", 
+ "rent", 
+ "you", 
+ "revenue", 
+ "curve", 
+ "reward", 
+ "sky", 
+ "impact", 
+ "efficiency", 
+ "chain", 
+ "board", 
+ "ideal", 
+ "rain", 
+ "image", 
+ "share", 
+ "illegal", 
+ "analyst", 
+ "go", 
+ "tour", 
+ "strike", 
+ "bank", 
+ "way", 
+ "guy", 
+ "save", 
+ "formal", 
+ "sick", 
+ "response", 
+ "entry", 
+ "salt", 
+ "incident", 
+ "vegetable", 
+ "reflection", 
+ "dear", 
+ "host", 
+ "level", 
+ "district", 
+ "warning", 
+ "addition", 
+ "row", 
+ "middle", 
+ "difficulty", 
+ "anxiety", 
+ "club", 
+ "supermarket", 
+ "hope", 
+ "show", 
+ "register", 
+ "officer", 
+ "test", 
+ "sign", 
+ "rub", 
+ "novel", 
+ "garbage", 
+ "tonight", 
+ "consequence", 
+ "gap", 
+ "comfortable", 
+ "environment", 
+ "tension", 
+ "psychology", 
+ "surround", 
+ "bottom", 
+ "sail", 
+ "original", 
+ "ratio", 
+ "base", 
+ "range", 
+ "duty", 
+ "target", 
+ "match", 
+ "salad", 
+ "answer", 
+ "understanding", 
+ "individual", 
+ "storm", 
+ "balance", 
+ "recording", 
+ "school", 
+ "girlfriend", 
+ "confidence", 
+ "laugh", 
+ "private", 
+ "statement", 
+ "hurry", 
+ "hide", 
+ "chance", 
+ "breakfast", 
+ "corner", 
+ "script", 
+ "give", 
+ "cloud", 
+ "fat", 
+ "membership", 
+ "shape", 
+ "contest", 
+ "fold", 
+ "prize", 
+ "objective", 
+ "equal", 
+ "mouse", 
+ "race", 
+ "device", 
+ "pen", 
+ "courage", 
+ "brother", 
+ "uncle", 
+ "quarter", 
+ "toe", 
+ "recognition", 
+ "friend", 
+ "candy", 
+ "steal", 
+ "card", 
+ "resident", 
+ "tongue", 
+ "resist", 
+ "activity", 
+ "marketing", 
+ "store", 
+ "guide", 
+ "bit", 
+ "afternoon", 
+ "date", 
+ "agent", 
+ "ordinary", 
+ "bone", 
+ "course", 
+ "trust", 
+ "point", 
+ "spell", 
+ "back", 
+ "visual", 
+ "low", 
+ "drop", 
+ "spend", 
+ "police", 
+ "shirt", 
+ "season", 
+ "ring", 
+ "employer", 
+ "red", 
+ "dark", 
+ "extent", 
+ "figure", 
+ "yesterday", 
+ "final", 
+ "crazy", 
+ "box", 
+ "piano", 
+ "weather", 
+ "reputation", 
+ "satisfaction", 
+ "function", 
+ "reception", 
+ "brush", 
+ "painting", 
+ "apartment", 
+ "soup", 
+ "cash", 
+ "sleep", 
+ "service", 
+ "attitude", 
+ "campaign", 
+ "church", 
+ "support", 
+ "height", 
+ "summer", 
+ "sad", 
+ "struggle", 
+ "somewhere", 
+ "mind", 
+ "chemistry", 
+ "farmer", 
+ "cover", 
+ "tree", 
+ "bite", 
+ "purchase", 
+ "phrase", 
+ "risk", 
+ "woman", 
+ "inevitable", 
+ "wish", 
+ "address", 
+ "main", 
+ "dinner", 
+ "drama", 
+ "shoot", 
+ "gate", 
+ "award", 
+ "field", 
+ "presence", 
+ "gain", 
+ "bat", 
+ "wrap", 
+ "tax", 
+ "draft", 
+ "judge", 
+ "reserve", 
+ "equivalent", 
+ "challenge", 
+ "nose", 
+ "pipe", 
+ "wall", 
+ "piece", 
+ "implement", 
+ "touch", 
+ "player", 
+ "town", 
+ "specific", 
+ "wife", 
+ "feel", 
+ "skirt", 
+ "animal", 
+ "purpose", 
+ "lock", 
+ "daughter", 
+ "budget", 
+ "living", 
+ "limit", 
+ "priest", 
+ "chapter", 
+ "nature", 
+ "pay", 
+ "coach", 
+ "blank", 
+ "female", 
+ "join", 
+ "phase", 
+ "scale", 
+ "stay", 
+ "series", 
+ "unit", 
+ "kick", 
+ "cigarette", 
+ "will", 
+ "description", 
+ "specialist", 
+ "mine", 
+ "total", 
+ "feed", 
+ "bathroom", 
+ "pause", 
+ "impress", 
+ "joint", 
+ "airline", 
+ "dance", 
+ "weird", 
+ "cake", 
+ "decision", 
+ "choice", 
+ "press", 
+ "interaction", 
+ "change", 
+ "few", 
+ "burn", 
+ "bus", 
+ "craft", 
+ "application", 
+ "vehicle", 
+ "leave", 
+ "edge", 
+ "copy", 
+ "prompt", 
+ "research", 
+ "win", 
+ "temporary", 
+ "village", 
+ "benefit", 
+ "negative", 
+ "dare", 
+ "package", 
+ "building", 
+ "chart", 
+ "link", 
+ "rise", 
+ "assistance", 
+ "youth", 
+ "quote", 
+ "act", 
+ "wait", 
+ "fishing", 
+ "exercise", 
+ "closet", 
+ "brilliant", 
+ "thought", 
+ "brick", 
+ "read", 
+ "constant", 
+ "rock", 
+ "usual", 
+ "stress", 
+ "square", 
+ "twist", 
+ "flower", 
+ "lack", 
+ "combination", 
+ "make", 
+ "bath", 
+ "rope", 
+ "shower", 
+ "bench", 
+ "surgery", 
+ "blow", 
+ "paint", 
+ "topic", 
+ "sugar", 
+ "assistant", 
+ "family", 
+ "hat", 
+ "collar", 
+ "hall", 
+ "band", 
+ "security", 
+ "sir", 
+ "ice", 
+ "television", 
+ "coffee", 
+ "philosophy", 
+ "major", 
+ "expression", 
+ "dog", 
+ "issue", 
+ "bicycle", 
+ "rice", 
+ "solution", 
+ "music", 
+ "passenger", 
+ "joke", 
+ "dish", 
+ "stretch", 
+ "data", 
+ "leather", 
+ "shoe", 
+ "feeling", 
+ "worth", 
+ "section", 
+ "escape", 
+ "sympathy", 
+ "dream", 
+ "customer", 
+ "report", 
+ "dependent", 
+ "food", 
+ "hell", 
+ "sample", 
+ "eye", 
+ "task", 
+ "article", 
+ "condition", 
+ "display", 
+ "model", 
+ "royal", 
+ "direction", 
+ "people", 
+ "air", 
+ "speed", 
+ "opening", 
+ "side", 
+ "arm", 
+ "county", 
+ "economics", 
+ "education", 
+ "landscape", 
+ "length", 
+ "road", 
+ "wind", 
+ "highlight", 
+ "schedule", 
+ "doctor", 
+ "miss", 
+ "chemical", 
+ "department", 
+ "grandmother", 
+ "blood", 
+ "politics", 
+ "sock", 
+ "minute", 
+ "draw", 
+ "welcome", 
+ "life", 
+ "disease", 
+ "command", 
+ "affect", 
+ "protection", 
+ "airport", 
+ "lab", 
+ "start", 
+ "number", 
+ "finger", 
+ "thing", 
+ "move", 
+ "signal", 
+ "law", 
+ "emergency", 
+ "connection", 
+ "idea", 
+ "chocolate", 
+ "goal", 
+ "heavy", 
+ "stroke", 
+ "classroom", 
+ "dirt", 
+ "name", 
+ "parent", 
+ "commercial", 
+ "pair", 
+ "mood", 
+ "steak", 
+ "nasty", 
+ "metal", 
+ "disk", 
+ "meet", 
+ "performance", 
+ "initial", 
+ "republic", 
+ "nation", 
+ "perspective", 
+ "jury", 
+ "average", 
+ "check", 
+ "history"
+];
+
+const keyboard = [
+  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+  ["Z", "X", "C", "V", "B", "N", "M"]
+];
+
+let chosenWord = "";
+let lettersGuessed = [];
+let streakCount = 1;
+
+window.onload = function () {
+  displayInstructionsPopup();
+  setupGame();
+  document.getElementById("instruct").addEventListener("click", displayInstructionsPopup);
+  document.addEventListener("keydown", handleKeyDown);
+};
+
+function displayInstructionsPopup() {
+  const popupContainer = document.createElement("div");
+  popupContainer.className = "popup-container";
+
+  const popup = document.createElement("div");
+  popup.className = "popup";
+
+  const popupContent = document.createElement("div");
+  popupContent.className = "popup-content";
+
+  const popupClose = document.createElement("span");
+  popupClose.className = "popup-close";
+  popupClose.innerHTML = "&times;";
+  popupClose.addEventListener("click", () => {
+    popupContainer.remove();
+  });
+
+  const popupTitle = document.createElement("h2");
+  popupTitle.innerText = "Instructions";
+
+  const popupMessage = document.createElement("p");
+  popupMessage.innerText =
+    "Guess letters by clicking on the onscreen keyboard.\n\nCorrect guesses flip the cards, revealing letters to help you guess the word.\n\nIncorrect guesses bring you closer to losing. Watch out for red tiles.\n\nFlip all the cards and guess the word before all the letters of 'HORSE' turn red to win.\n\nTrack your streak and aim for a high score.";
+
+  popupContent.appendChild(popupClose);
+  popupContent.appendChild(popupTitle);
+  popupContent.appendChild(popupMessage);
+
+  popup.appendChild(popupContent);
+  popupContainer.appendChild(popup);
+  document.body.appendChild(popupContainer);
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" && document.querySelector(".popup-container")) {
+      event.preventDefault();
+      popupContainer.remove();
+    }
+  });
+}
+
+function setupGame() {
+  chosenWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+  setupWord();
+  setupKeyboard();
+  resetTargetWord();
+}
+
+function setupWord() {
+  const wordContainer = document.getElementById("word-container");
+  wordContainer.innerHTML = "";
+  for (let i = 0; i < chosenWord.length; i++) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="face front"></div>
+      <div class="face back">${chosenWord[i].toUpperCase()}</div>
+    `;
+    const cardContainer = document.createElement("div");
+    cardContainer.appendChild(card);
+    wordContainer.appendChild(cardContainer);
+  }
+}
+
+
+function setupKeyboard() {
+  for (let i = 0; i < keyboard.length; i++) {
+    const rowContainer = document.getElementById("row-" + (i + 1));
+    rowContainer.innerHTML = "";
+    for (let j = 0; j < keyboard[i].length; j++) {
+      const letterButton = document.createElement("button");
+      letterButton.innerText = keyboard[i][j];
+      letterButton.dataset.letter = keyboard[i][j];
+      letterButton.addEventListener("click", guessLetter);
+      letterButton.addEventListener("touchstart", handleTouchStart, { passive: true });
+      letterButton.addEventListener("touchend", handleTouchEnd);
+      rowContainer.appendChild(letterButton);
+    }
+  }
+}
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+function handleTouchStart(event) {
+  const touch = event.changedTouches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+}
+
+function handleTouchEnd(event) {
+  const touch = event.changedTouches[0];
+  const touchEndX = touch.clientX;
+  const touchEndY = touch.clientY;
+  const touchDistanceThreshold = 10; // Adjust this value to control the touch sensitivity
+
+  if (
+    Math.abs(touchEndX - touchStartX) < touchDistanceThreshold &&
+    Math.abs(touchEndY - touchStartY) < touchDistanceThreshold
+  ) {
+    // Handle the touch event as a click
+    event.preventDefault();
+    guessLetter(event);
+  }
+}
+
+function guessLetter(event) {
+  const letter = event.target.innerText.toLowerCase();
+  event.target.disabled = true;
+  handleGuess(letter);
+}
+
+function handleKeyDown(event) {
+  const letter = event.key.toUpperCase();
+  if (isLetter(letter)) {
+    const letterButton = document.querySelector(
+      `#keyboard-container button[data-letter="${letter}"]:not([disabled])`
+    );
+    if (letterButton) {
+      letterButton.click();
+    }
+  }
+}
+
+function isLetter(str) {
+  return str.length === 1 && str.match(/[a-z]/i);
+}
+
+function handleGuess(letter) {
+  if (chosenWord.includes(letter)) {
+    const wordContainer = document.getElementById("word-container");
+    const wordCards = wordContainer.getElementsByClassName("card");
+
+    for (let i = 0; i < chosenWord.length; i++) {
+      if (chosenWord[i] === letter) {
+        wordCards[i].classList.add("flipped");
+        lettersGuessed.push(letter);
+      }
+    }
+
+    updateOnscreenKeys();
+  } else {
+    lettersGuessed.push(letter);
+    updateOnscreenKeys();
+
+    const targetWordContainer = document.getElementById("target-word");
+    const targetWordTiles = targetWordContainer.getElementsByClassName(
+      "target-tile"
+    );
+    const incorrectGuesses = lettersGuessed.filter(
+      (guess) => !chosenWord.includes(guess)
+    ).length;
+
+    if (incorrectGuesses <= targetWordTiles.length) {
+      targetWordTiles[incorrectGuesses - 1].classList.add("red");
+      targetWordTiles[incorrectGuesses - 1].classList.add("flipped");
+    }
+
+    const redTiles = document.querySelectorAll(".target-tile.red");
+    if (redTiles.length === targetWordTiles.length) {
+      displayPopup("Sorry, you lost!", chosenWord);
+      resetStreak();
+    }
+  }
+
+  const flippedCards = document.querySelectorAll(".card.flipped");
+  if (flippedCards.length === chosenWord.length) {
+    displayPopup("Congratulations, you won!");
+    updateStreakCount();
+  }
+}
+
+function updateOnscreenKeys() {
+  const letterButtons = document.querySelectorAll("#keyboard-container button");
+  letterButtons.forEach((button) => {
+    const letter = button.dataset.letter.toLowerCase();
+    if (lettersGuessed.includes(letter)) {
+      if (chosenWord.includes(letter)) {
+        button.classList.add("correct");
+      } else {
+        button.classList.add("incorrect");
+      }
+    }
+  });
+}
+
+function displayPopup(message, lostWord = "") {
+  const popupContainer = document.createElement("div");
+  popupContainer.className = "popup-container";
+
+  const popup = document.createElement("div");
+  popup.className = "popup";
+
+  const popupContent = document.createElement("div");
+  popupContent.className = "popup-content";
+
+  const popupClose = document.createElement("span");
+  popupClose.className = "popup-close";
+  popupClose.innerHTML = "&times;";
+  popupClose.addEventListener("click", () => {
+    popupContainer.remove();
+    resetGame();
+  });
+
+  const popupMessage = document.createElement("p");
+  popupMessage.innerText = message;
+
+  popupContent.appendChild(popupClose);
+  popupContent.appendChild(popupMessage);
+
+  if (lostWord) {
+    const popupWord = document.createElement("div");
+    popupWord.className = "popup-word";
+    lostWord.split("").forEach((letter) => {
+      const tile = document.createElement("div");
+      tile.className = "word-tile";
+      tile.innerText = letter.toUpperCase();
+      popupWord.appendChild(tile);
+    });
+    popupContent.appendChild(popupWord);
+  } else {
+    const streakCountElement = document.createElement("p");
+    streakCountElement.innerText = `Streak: ${streakCount}`;
+    popupContent.appendChild(streakCountElement);
+  }
+
+  popup.appendChild(popupContent);
+  popupContainer.appendChild(popup);
+  document.body.appendChild(popupContainer);
+
+  popup.appendChild(popupContent);
+  popupContainer.appendChild(popup);
+  document.body.appendChild(popupContainer);
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" && document.querySelector(".popup-container")) {
+      event.preventDefault();
+      closePopup();
+      resetGame();
+    }
+  });
+
+  function closePopup() {
+    const popupContainer = document.querySelector(".popup-container");
+    popupContainer.remove();
+  }
+}
+
+function resetGame() {
+  setupGame();
+  lettersGuessed = [];
+  updateOnscreenKeys();
+}
+
+function resetTargetWord() {
+  const targetWordTiles = document.querySelectorAll(
+    "#target-word .target-tile"
+  );
+  targetWordTiles.forEach((tile) => {
+    tile.classList.remove("red");
+    tile.classList.remove("flipped");
+  });
+}
+
+function updateStreakCount() {
+  streakCount++;
+  const streakContainer = document.getElementById("streak-container");
+  streakContainer.innerText = `Streak: ${streakCount}`;
+}
+
+function resetStreak() {
+  streakCount = 1;
+  const streakContainer = document.getElementById("streak-container");
+  streakContainer.innerText = `Streak: ${streakCount}`;
+}
+
+resetStreak();
+
+  </script>
+</body>
+
+</html>
